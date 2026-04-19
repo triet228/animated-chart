@@ -13,13 +13,18 @@ tickers = ['VOO', 'ONEQ']
 FPS = 60 
 DURATION_SECONDS = 15  
 TOTAL_FRAMES = FPS * DURATION_SECONDS
-INITIAL_INVESTMENT = 10000
+INITIAL_INVESTMENT = 1000
+
+# --- NEW: Specific Year Range ---
+# Set to a year (e.g., 2010) or None to auto-detect
+START_YEAR = 1980 
+END_YEAR = 2024    
 
 # Random song selection
 song_num = random.randint(1, 100)
 audio_path = os.path.join("songs", f"song{song_num:03}.mp3")
 
-# 2. Data Cleaning & Alignment
+# 2. Data Cleaning & Range Filtering
 data = pd.read_csv(csv_file)
 
 # Convert % strings to floats
@@ -27,16 +32,26 @@ for col in tickers:
     if data[col].dtype == 'object':
         data[col] = data[col].str.replace('%', '').astype(float)
 
-# NEW: Drop rows where EITHER stock is missing data (Fair Start)
+# Filter by User-Specified Year Range
+if START_YEAR:
+    data = data[data['Year'] >= START_YEAR]
+if END_YEAR:
+    data = data[data['Year'] <= END_YEAR]
+
+# Ensure a Fair Start (only years where both have data)
 data = data.dropna(subset=tickers).reset_index(drop=True)
 
-# Calculate Dollar Value starting from the first common year
+if data.empty:
+    print("Error: No overlapping data for the specified years/tickers.")
+    exit()
+
+# Calculate Dollar Value
 compounded = (1 + data[tickers] / 100).cumprod()
 start_row = pd.DataFrame([[1.0] * len(tickers)], columns=tickers)
 raw_values = pd.concat([start_row, compounded], ignore_index=True) * INITIAL_INVESTMENT
 raw_years = [data['Year'].iloc[0] - 1] + data['Year'].tolist()
 
-# Interpolation
+# Interpolation for smoothness
 x_old = np.linspace(0, len(raw_values) - 1, len(raw_values))
 x_new = np.linspace(0, len(raw_values) - 1, TOTAL_FRAMES)
 value_data = pd.DataFrame({col: np.interp(x_new, x_old, raw_values[col]) for col in tickers})
@@ -56,8 +71,10 @@ def currency(x, pos=None):
     return f'${x*1e-3:.0f}K' if x >= 1e3 else f'${x:.0f}'
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency))
-year_text = ax.text(0.5, 0.92, '', transform=ax.transAxes, ha='center', fontsize=32, fontweight='bold', color='#FFD700')
-winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center', fontsize=45, fontweight='bold', color='white', alpha=0)
+year_text = ax.text(0.5, 0.92, '', transform=ax.transAxes, ha='center', 
+                    fontsize=32, fontweight='bold', color='#FFD700')
+winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center', 
+                      fontsize=45, fontweight='bold', color='white', alpha=0)
 
 def init():
     ax.set_xlim(min(raw_years), max(raw_years))
@@ -65,12 +82,13 @@ def init():
     return line1, line2, year_text
 
 # 4. Rendering
-pbar = tqdm(total=TOTAL_FRAMES, desc="Rendering Fair Battle")
+pbar = tqdm(total=TOTAL_FRAMES, desc=f"Rendering {START_YEAR}-{END_YEAR}")
 def update(frame):
     pbar.update(1)
     line1.set_data(years_interp[:frame], value_data[tickers[0]][:frame])
     line2.set_data(years_interp[:frame], value_data[tickers[1]][:frame])
     year_text.set_text(f"YEAR: {int(years_interp[frame])}")
+    
     if frame == TOTAL_FRAMES - 1:
         win = tickers[0] if value_data[tickers[0]].iloc[-1] > value_data[tickers[1]].iloc[-1] else tickers[1]
         winner_text.set_text(f"{win} WINS!\n{currency(value_data[win].iloc[-1])}")
@@ -81,8 +99,10 @@ ani = FuncAnimation(fig, update, frames=TOTAL_FRAMES, init_func=init, blit=True)
 ani.save('temp_silent.mp4', writer='ffmpeg', fps=FPS, bitrate=5000)
 pbar.close()
 
-# 5. Audio Merge & Finalize
+# 5. Audio Merge
 video_clip = VideoFileClip("temp_silent.mp4")
 final_video = video_clip.with_audio(AudioFileClip(audio_path).subclipped(0, video_clip.duration))
-final_video.write_videofile("fair_battle_output.mp4", codec="libx264", threads=8, fps=FPS)
+final_video.write_videofile("custom_range_battle.mp4", codec="libx264", threads=8, fps=FPS)
 os.remove("temp_silent.mp4")
+
+print(f"\nBattle from {int(raw_years[1])} to {int(raw_years[-1])} is complete!")
