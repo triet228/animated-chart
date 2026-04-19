@@ -10,15 +10,15 @@ from moviepy import VideoFileClip, AudioFileClip
 
 # 1. Configuration
 csv_file = "data.csv"
-tickers = ['SP500', 'NASDAQ'] # Exclusively SP500 and NASDAQ
+tickers = ['SP500', 'NASDAQ'] 
 FPS = 60 
 DURATION_SECONDS = 15  
 TOTAL_FRAMES = FPS * DURATION_SECONDS
 INITIAL_INVESTMENT = 10000
-START_YEAR, END_YEAR = 2000, 2024
+START_YEAR, END_YEAR = 2010, 2024
 output_name = "output.mp4"
 
-COLORS = ['#00ffcc', '#ff0077'] # Neon Cyan and Neon Pink
+COLORS = ['#00ffcc', '#ff0077'] 
 audio_path = os.path.join("songs", f"song{random.randint(1, 100):03}.mp3")
 
 # 2. Data Cleaning
@@ -72,24 +72,40 @@ winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center',
 
 def init():
     ax.set_xlim(min(dates_interp), max(dates_interp))
-    ax.set_ylim(value_data.min().min() * 0.9, value_data.max().max() * 1.1)
+    # Start the Y-axis zoomed in on the initial investment
+    ax.set_ylim(INITIAL_INVESTMENT * 0.9, INITIAL_INVESTMENT * 1.1)
     return *lines, winner_text
 
 # 4. Rendering
-pbar = tqdm(total=TOTAL_FRAMES, desc=f"Rendering {tickers[0]} vs {tickers[1]}")
+pbar = tqdm(total=TOTAL_FRAMES, desc="Rendering Dynamic Zoom Battle")
 def update(frame):
     pbar.update(1)
-    for i, ticker in enumerate(tickers):
-        lines[i].set_data(dates_interp[:frame], value_data[ticker][:frame])
     
+    # Get the current slice of data for all tickers
+    current_slice = value_data.iloc[:frame+1]
+    
+    for i, ticker in enumerate(tickers):
+        lines[i].set_data(dates_interp[:frame+1], current_slice[ticker])
+    
+    # --- DYNAMIC ZOOM LOGIC ---
+    # Find min and max of the data shown SO FAR
+    current_min = current_slice.min().min()
+    current_max = current_slice.max().max()
+    
+    # Adjust Y-limits with a small buffer
+    ax.set_ylim(current_min * 0.95, current_max * 1.1)
+    # --------------------------
+
     if frame == TOTAL_FRAMES - 1:
         final_scores = {t: value_data[t].iloc[-1] for t in tickers}
         win = max(final_scores, key=final_scores.get)
         winner_text.set_text(f"{win} WINS!\n{currency(final_scores[win])}")
         winner_text.set_alpha(1)
+        
     return *lines, winner_text
 
-ani = FuncAnimation(fig, update, frames=TOTAL_FRAMES, init_func=init, blit=True)
+# Note: blit=False is required for dynamic axis limits
+ani = FuncAnimation(fig, update, frames=TOTAL_FRAMES, init_func=init, blit=False)
 ani.save('temp_silent.mp4', writer='ffmpeg', fps=FPS, bitrate=5000)
 pbar.close()
 
@@ -103,4 +119,4 @@ video_clip.close()
 if os.path.exists("temp_silent.mp4"):
     os.remove("temp_silent.mp4")
 
-print(f"\nBattle complete! Saved as {output_name}")
+print(f"\nZooming battle complete! Saved as {output_name}")
