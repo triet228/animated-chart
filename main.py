@@ -54,9 +54,8 @@ plt.subplots_adjust(left=0.18, right=0.9, top=0.85, bottom=0.15)
 lines = [ax.plot([], [], label=t, color=COLORS[i % len(COLORS)], lw=5)[0] for i, t in enumerate(tickers)]
 ax.legend(loc='upper center', fontsize=22, frameon=False, ncol=1, borderpad=2)
 
-# Sparse X-Axis
+# X-Axis Formatting
 ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
-ax.xaxis.set_major_locator(mdates.YearLocator(5)) 
 plt.xticks(fontsize=18, color='#888888')
 
 def currency(x, pos=None):
@@ -71,28 +70,30 @@ winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center',
                       fontsize=45, fontweight='bold', color='white', alpha=0)
 
 def init():
-    ax.set_xlim(min(dates_interp), max(dates_interp))
-    # Start the Y-axis zoomed in on the initial investment
+    # Start with a very narrow X window (just the first month)
+    ax.set_xlim(dates_interp[0], dates_interp[1])
     ax.set_ylim(INITIAL_INVESTMENT * 0.9, INITIAL_INVESTMENT * 1.1)
     return *lines, winner_text
 
 # 4. Rendering
-pbar = tqdm(total=TOTAL_FRAMES, desc="Rendering Dynamic Zoom Battle")
+pbar = tqdm(total=TOTAL_FRAMES, desc="Rendering Panning Battle")
 def update(frame):
     pbar.update(1)
     
-    # Get the current slice of data for all tickers
-    current_slice = value_data.iloc[:frame+1]
+    # Ensure we have at least 2 points to draw
+    current_idx = max(1, frame)
+    current_slice = value_data.iloc[:current_idx+1]
     
     for i, ticker in enumerate(tickers):
-        lines[i].set_data(dates_interp[:frame+1], current_slice[ticker])
+        lines[i].set_data(dates_interp[:current_idx+1], current_slice[ticker])
     
-    # --- DYNAMIC ZOOM LOGIC ---
-    # Find min and max of the data shown SO FAR
+    # --- DYNAMIC X & Y ZOOM ---
+    # Update X-limit to follow the current point (adds a tiny bit of padding)
+    ax.set_xlim(dates_interp[0], dates_interp[current_idx] + 10)
+    
+    # Update Y-limit based on data seen so far
     current_min = current_slice.min().min()
     current_max = current_slice.max().max()
-    
-    # Adjust Y-limits with a small buffer
     ax.set_ylim(current_min * 0.95, current_max * 1.1)
     # --------------------------
 
@@ -104,7 +105,6 @@ def update(frame):
         
     return *lines, winner_text
 
-# Note: blit=False is required for dynamic axis limits
 ani = FuncAnimation(fig, update, frames=TOTAL_FRAMES, init_func=init, blit=False)
 ani.save('temp_silent.mp4', writer='ffmpeg', fps=FPS, bitrate=5000)
 pbar.close()
@@ -119,4 +119,4 @@ video_clip.close()
 if os.path.exists("temp_silent.mp4"):
     os.remove("temp_silent.mp4")
 
-print(f"\nZooming battle complete! Saved as {output_name}")
+print(f"\nDynamic pan complete! Saved as {output_name}")
