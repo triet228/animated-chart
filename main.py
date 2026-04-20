@@ -10,15 +10,15 @@ from moviepy import VideoFileClip, AudioFileClip
 
 # 1. Configuration
 csv_file = "data.csv"
-tickers = ['VOO', 'ONEQ'] 
+tickers = ['VOO', 'VTI'] 
 FPS = 60 
 DURATION_SECONDS = 15  
 TOTAL_FRAMES = FPS * DURATION_SECONDS
-INITIAL_INVESTMENT = 10000
-START_YEAR, END_YEAR = 2025-40, 2025
+INITIAL_INVESTMENT = 200000
+START_YEAR, END_YEAR = 1980, 2025
 output_name = "output.mp4"
 
-COLORS = ['#00ffcc', '#ff0077', '#ffff00', '#0077ff', '#ff8800', '#cc00ff', '#ffffff']
+COLORS = ['#00ffcc', '#ff0077'] 
 audio_path = os.path.join("songs", f"song{random.randint(1, 100):03}.mp3")
 
 # 2. Data Cleaning
@@ -71,8 +71,13 @@ def currency(x, pos=None):
     return f'${x*1e-3:.0f}K' if x >= 1e3 else f'${x:.0f}'
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency))
-ax.tick_params(axis='both', labelsize=12, colors='#888888')
-ax.set_title("SP500 VS NASDAQ", fontsize=40, pad=50, fontweight='bold')
+ax.tick_params(axis='both', labelsize=18, colors='#888888')
+ax.set_title("SP500 VS Total Market", fontsize=40, pad=50, fontweight='bold')
+
+# ADDED: The $1M Finish Line
+ax.axhline(y=1000000, color='white', linestyle='--', alpha=0.3, lw=3)
+ax.text(dates_interp[0], 1000000 + 20000, " $1M RACE", color='white', 
+        fontsize=20, fontweight='bold', alpha=0.5, va='bottom')
 
 winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center', 
                       fontsize=45, fontweight='bold', color='white', alpha=0)
@@ -80,35 +85,43 @@ winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center',
 def init():
     ax.set_xlim(dates_interp[0], dates_interp[1])
     ax.set_ylim(INITIAL_INVESTMENT * 0.9, INITIAL_INVESTMENT * 1.1)
-    return *lines, *line_labels, winner_text  # UPDATED
+    return *lines, *line_labels, winner_text  
 
 # 4. Rendering
+# ADDED: Find the first frame where anyone hits 1 Million
+winning_frames = value_data[(value_data[tickers] >= 1000000).any(axis=1)].index
+winning_frame = winning_frames[0] if len(winning_frames) > 0 else TOTAL_FRAMES - 1
+
 pbar = tqdm(total=TOTAL_FRAMES, desc="Rendering Borderless Battle")
 def update(frame):
     pbar.update(1)
-    current_idx = max(1, frame)
+    
+    # ADDED: FREEZE the chart if it hits the winning frame
+    current_idx = min(max(1, frame), winning_frame)
     current_slice = value_data.iloc[:current_idx+1]
     
     for i, ticker in enumerate(tickers):
         lines[i].set_data(dates_interp[:current_idx+1], current_slice[ticker])
-        # UPDATED: Move the label to the current end of the line
         current_x = dates_interp[current_idx]
         current_y = current_slice[ticker].iloc[-1]
-        line_labels[i].set_position((current_x - 80, current_y + 1000))
+        
+        # ADDED: Move the label to the current end of the line, offset up by 200
+        line_labels[i].set_position((current_x, current_y + 200))
     
-    # UPDATED: Increased padding so text doesn't cut off
+    # Increased padding so text doesn't cut off
     ax.set_xlim(dates_interp[0], dates_interp[current_idx] + 150)
     current_min = current_slice.min().min()
     current_max = current_slice.max().max()
     ax.set_ylim(current_min * 0.95, current_max * 1.1)
 
-    if frame == TOTAL_FRAMES - 1:
-        final_scores = {t: value_data[t].iloc[-1] for t in tickers}
+    # ADDED: Trigger winner text when the chart freezes
+    if current_idx == winning_frame:
+        final_scores = {t: value_data[t].iloc[current_idx] for t in tickers}
         win = max(final_scores, key=final_scores.get)
-        winner_text.set_text(f"{win} WINS!\n{currency(final_scores[win])}")
+        winner_text.set_text(f"{win} WINS!")
         winner_text.set_alpha(1)
         
-    return *lines, *line_labels, winner_text  # UPDATED
+    return *lines, *line_labels, winner_text  
 
 ani = FuncAnimation(fig, update, frames=TOTAL_FRAMES, init_func=init, blit=False)
 ani.save('temp_silent.mp4', writer='ffmpeg', fps=FPS, bitrate=5000)

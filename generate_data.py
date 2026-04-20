@@ -9,8 +9,7 @@ ticker_map = {
     '^IXIC': 'NASDAQ',
     'VOO': 'VOO',
     'ONEQ': 'ONEQ',
-    'AAPL': 'AAPL',
-    'TSLA': 'TSLA'
+    'VTI': 'VTI'
 }
 
 tickers = list(ticker_map.keys())
