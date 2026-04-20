@@ -1,3 +1,3 @@
-# Leverage branch
+# Retirement branch
 
-This branch specifically focus on race between stocks until bankruptcy
+This branch focus on retirement phase
