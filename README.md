@@ -41,6 +41,16 @@ cd animated-chart
 
 The script will render the frames, merge the audio, and output a finished video named `output.mp4` in your current directory.
 
+## Other Branches
+
+Different branches in this repository feature unique variations of the animated chart. You can switch between branches to generate different styles of racing videos.
+
+| Branch Name | Description |
+| :--- | :--- |
+| `main` | The default animated chart racing up to the end of the provided data. |
+| `millionaire` | Races the stocks and freezes the animation exactly when the first one reaches the $1,000,000 mark. |
+
+
 ## License
 
 This project is open-source and distributed under a Copyleft License. See the `LICENSE` file for more details.
