@@ -9,18 +9,18 @@ import os
 from moviepy import VideoFileClip, AudioFileClip
 
 # 1. Configuration
-CHART_TITLE = "SP500 vs Leverage"  # Edit your title here
-LOWER_LIMIT = 0  # Edit your lower limit here
+CHART_TITLE = "Retirement Withdraw Rate\n70% SP500 30% HYSA" 
+LOWER_LIMIT = 0 
 
 csv_file = "data.csv"
-tickers = ['SP500', '2x', '3x', '4x', '5x', '6x', '7x', '8x', '9x', '10x']
+tickers = ['4%', '5%', '6%', '7%', '8%', '9%', '10%']
 FPS = 60 
-DURATION_SECONDS = 45  
+DURATION_SECONDS = 15  
 TOTAL_FRAMES = FPS * DURATION_SECONDS
-PAUSE_SECONDS = 0
+PAUSE_SECONDS = 3  # Updated to 3 seconds
 PAUSE_FRAMES = FPS * PAUSE_SECONDS
-INITIAL_INVESTMENT = 100000
-START_YEAR, END_YEAR = 0000, 2025
+INITIAL_INVESTMENT = 1000000
+START_YEAR, END_YEAR = 0, 2025
 output_name = "output.mp4"
 
 COLORS = [
@@ -41,11 +41,9 @@ for col in tickers:
 data = data[(data['Year'] >= START_YEAR) & (data['Year'] <= END_YEAR)]
 data = data.dropna(subset=tickers).reset_index(drop=True)
 
-# Math & Date Interpolation
 compounded = (1 + data[tickers] / 100).cumprod()
 raw_values = pd.concat([pd.DataFrame([[1.0]*len(tickers)], columns=tickers), compounded], ignore_index=True) * INITIAL_INVESTMENT
 
-# FIX: Force bankrupt tickers to stay at LOWER_LIMIT once they hit it
 for col in tickers:
     hit_mask = raw_values[col] <= LOWER_LIMIT
     if hit_mask.any():
@@ -73,7 +71,7 @@ ax.spines['bottom'].set_color('#444444')
 
 lines = [ax.plot([], [], label=t, color=COLORS[i % len(COLORS)], lw=5)[0] for i, t in enumerate(tickers)]
 line_labels = [ax.text(0, 0, f" {t}", color=COLORS[i % len(COLORS)], 
-                       fontsize=18, fontweight='bold', va='center') for i, t in enumerate(tickers)]
+                        fontsize=18, fontweight='bold', va='center') for i, t in enumerate(tickers)]
 
 ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 plt.xticks(fontsize=18, color='#888888')
@@ -86,9 +84,8 @@ ax.yaxis.set_major_formatter(plt.FuncFormatter(currency))
 ax.tick_params(axis='both', labelsize=18, colors='#888888')
 ax.set_title(CHART_TITLE, fontsize=40, pad=50, fontweight='bold')
 
-# Lower Limit Line
 ax.axhline(y=LOWER_LIMIT, color='red', linestyle='--', alpha=0.5, lw=3)
-ax.text(dates_interp[0], LOWER_LIMIT + 2000, f" BANKRUPTCY = {currency(LOWER_LIMIT)}", color='red', 
+ax.text(dates_interp[0], LOWER_LIMIT + 2000, f" BANKRUPTCY", color='red', 
         fontsize=20, fontweight='bold', alpha=0.7, va='bottom')
 
 def init():
@@ -97,30 +94,16 @@ def init():
     return *lines, *line_labels  
 
 # 4. Rendering Setup
-# Find the first frame where ANY ticker hits the limit
-hit_frames = value_data[(value_data[tickers] <= LOWER_LIMIT).any(axis=1)].index
-first_hit_frame = hit_frames[0] if len(hit_frames) > 0 else None
-
-# Animation will be longer by the duration of the pause
-ANIMATION_FRAMES = TOTAL_FRAMES + PAUSE_FRAMES if first_hit_frame is not None else TOTAL_FRAMES
-
+# Total frames now includes the pause at the end
+ANIMATION_FRAMES = TOTAL_FRAMES + PAUSE_FRAMES
 pbar = tqdm(total=ANIMATION_FRAMES, desc="Rendering")
 
 def update(frame):
     pbar.update(1)
     
-    # Pause Logic: If we've hit the bankruptcy line, freeze frame for PAUSE_FRAMES
-    if first_hit_frame is not None:
-        if frame < first_hit_frame:
-            current_idx = frame
-        elif frame < first_hit_frame + PAUSE_FRAMES:
-            current_idx = first_hit_frame
-        else:
-            current_idx = frame - PAUSE_FRAMES
-    else:
-        current_idx = frame
+    # Use the last data index if we are in the pause period
+    current_idx = min(frame, TOTAL_FRAMES - 1)
         
-    current_idx = min(max(1, current_idx), TOTAL_FRAMES - 1)
     current_slice = value_data.iloc[:current_idx+1]
     
     for i, ticker in enumerate(tickers):
