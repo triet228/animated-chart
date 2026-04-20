@@ -10,7 +10,7 @@ from moviepy import VideoFileClip, AudioFileClip
 
 # 1. Configuration
 csv_file = "data.csv"
-tickers = ['SP500', 'NASDAQ', 'VOO'] 
+tickers = ['VOO', 'ONEQ'] 
 FPS = 60 
 DURATION_SECONDS = 15  
 TOTAL_FRAMES = FPS * DURATION_SECONDS
