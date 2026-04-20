@@ -1,6 +1,8 @@
 # Animated Stock Chart Generator
 
-A Python project that creates an animated video chart racing stock data, complete with background music. 
+A Python project that creates an financial animated chart. 
+
+https://github.com/user-attachments/assets/7ec80d3f-a488-4e7b-b3f3-ccc8a6491e71
 
 ## Project Structure
 
@@ -50,15 +52,14 @@ Different branches in this repository feature unique variations of the animated 
 | `main` | The default animated chart racing up to the end of the provided data. |
 | `millionaire` | Races the stocks until one reaches $1M. |
 | `leverage` | Races the stocks until one reaches $0. |
-| `retirement` | Retirement focus animated chart. |
+| `retirement` | Retirement focus on withdraw rate. |
+| `contribution` | Invest monthly in stocks. |
 
-
+Example use of branch
 ```bash
 git checkout retirement
 python main.py
 ```
-
-
 
 ## License
 
