@@ -120,7 +120,7 @@ def update(frame):
     ax.set_ylim(current_min * 0.95, current_max * 1.15)
 
     if current_idx == winning_frame:
-        winner_text.set_text(f"{elapsed_years} YEARS!")
+        winner_text.set_text(f"{elapsed_years} YEARS\nTO REACH $1M!")
         winner_text.set_alpha(1)
         
     return *lines, *line_labels, winner_text, years_text  
