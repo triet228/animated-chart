@@ -10,13 +10,13 @@ from moviepy import VideoFileClip, AudioFileClip
 
 # 1. Configuration
 csv_file = "data.csv"
-tickers = ['$500'] 
+tickers = ['SP500'] 
 FPS = 60 
-DURATION_SECONDS = 10
-PAUSE_SECONDS = 0  # ADDED: 3 second pause
+DURATION_SECONDS = 15
+PAUSE_SECONDS = 3  # ADDED: 3 second pause
 TOTAL_FRAMES = FPS * DURATION_SECONDS
 PAUSE_FRAMES = FPS * PAUSE_SECONDS
-INITIAL_INVESTMENT = 1
+INITIAL_INVESTMENT = 1000000 - 1
 START_YEAR, END_YEAR = 0, 2025
 output_name = "output.mp4"
 
@@ -63,7 +63,7 @@ line_labels = [ax.text(0, 0, f" {t}", color=COLORS[i % len(COLORS)],
 
 # MOVED: Investing Years Counter to Middle Top
 years_text = ax.text(0.5, 0.92, '', transform=ax.transAxes, ha='center', 
-                     fontsize=40, fontweight='bold', color='#ffffff', alpha=0.8)
+                      fontsize=40, fontweight='bold', color='#ffffff', alpha=0.8)
 
 ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 plt.xticks(fontsize=18, color='#888888')
@@ -74,14 +74,16 @@ def currency(x, pos=None):
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency))
 ax.tick_params(axis='both', labelsize=18, colors='#888888')
-ax.set_title("INVEST $500 A MONTH", fontsize=40, pad=60, fontweight='bold')
+ax.set_title("LONGEST RECOVERY", fontsize=40, pad=60, fontweight='bold')
 
 ax.axhline(y=1000000, color='white', linestyle='--', alpha=0.3, lw=3)
 ax.text(dates_interp[0], 1000000 + 20000, "$1M", color='white', 
         fontsize=20, fontweight='bold', alpha=0.5, va='bottom')
 
+# ADDED: bbox (background box) to winner_text
 winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center', 
-                      fontsize=45, fontweight='bold', color='white', alpha=0)
+                      fontsize=45, fontweight='bold', color='white', alpha=0, 
+                      bbox=dict(facecolor='black', alpha=0.7, edgecolor='none', boxstyle='round,pad=0.5'))
 
 def init():
     ax.set_xlim(dates_interp[0], dates_interp[1])
@@ -120,7 +122,7 @@ def update(frame):
     ax.set_ylim(current_min * 0.95, current_max * 1.15)
 
     if current_idx == winning_frame:
-        winner_text.set_text(f"{elapsed_years} YEARS\nTO REACH \n$1M!\nINFLATION ACCOUNTED")
+        winner_text.set_text(f"{elapsed_years} YEARS\nTO RECOVER")
         winner_text.set_alpha(1)
         
     return *lines, *line_labels, winner_text, years_text  

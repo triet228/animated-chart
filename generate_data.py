@@ -1,47 +1,44 @@
 import yfinance as yf
 import pandas as pd
+from datetime import timedelta
 
 filename = "data.csv"
-INITIAL_BALANCE = 1
-SP500_WEIGHT = 1.00
-CASH_WEIGHT = 0.00
-CASH_ANNUAL_INTEREST = 0.03
-ANNUAL_INFLATION = 0.025
-CONTRIBUTIONS = [100, 500, 1000] 
+INITIAL_BALANCE = 1_000_000
 
-# 1. Market Growth (Real Terms)
+# 1. Get Market Data
 df_raw = yf.download("^GSPC", period="max", interval="1d", auto_adjust=True)
 prices = df_raw['Close']
 if isinstance(prices, pd.DataFrame): prices = prices.iloc[:, 0]
 
-sp500_ret = prices.pct_change().dropna()
-daily_cash = (1 + CASH_ANNUAL_INTEREST)**(1/252) - 1
-daily_inf = (1 + ANNUAL_INFLATION)**(1/252) - 1
-# Real Daily Return = ((1 + Nominal) / (1 + Inflation)) - 1
-nominal_daily = (sp500_ret * SP500_WEIGHT) + (daily_cash * CASH_WEIGHT)
-daily_real_return = ((1 + nominal_daily) / (1 + daily_inf)) - 1
-monthly_market_growth = (1 + daily_real_return).resample('ME').prod()
+# 2. Identify the Longest Recovery Window
+running_max = prices.cummax()
+drawdown_groups = (prices == running_max).cumsum()
+durations = prices.groupby(drawdown_groups).apply(lambda x: x.index[-1] - x.index[0])
+longest_group_id = durations.idxmax()
 
-# 2. Simulate Dollar Balances
-df_final = pd.DataFrame(index=monthly_market_growth.index)
-monthly_inf_factor = (1 + ANNUAL_INFLATION)**(1/12)
+# Get the recovery dates
+recovery_period = prices.groupby(drawdown_groups).get_group(longest_group_id)
+start_date = recovery_period.index[0]
+recovery_date = recovery_period.index[-1]
 
-for amount in CONTRIBUTIONS:
-    balance = INITIAL_BALANCE
-    current_adj_contribution = amount
-    balance_history = []
-    
-    for market_growth in monthly_market_growth:
-        # Market acts on existing money, then we add the new money
-        balance = (balance * market_growth) + current_adj_contribution
-        balance_history.append(balance)
-        
-        # Increase contribution for next month to keep up with inflation
-        current_adj_contribution *= monthly_inf_factor
-        
-    df_final[str(amount)] = balance_history
+# 3. Add 2 Years to the selection
+extended_end_date = recovery_date + timedelta(days=730)
+# Slice the original price data using the new extended range
+extended_prices = prices.loc[start_date:extended_end_date]
 
-# 3. Export
-df_final.index.name = 'Date'
-df_final.to_csv(filename)
-print(f"Done! {filename} now contains actual dollar balances.")
+# 4. Simulate the $1M Investment
+daily_ret = extended_prices.pct_change().fillna(0)
+balance_history = [INITIAL_BALANCE]
+
+for ret in daily_ret[1:]:
+    current_balance = balance_history[-1] * (1 + ret)
+    balance_history.append(current_balance)
+
+# 5. Export
+df_recovery = pd.DataFrame({'SP500': balance_history}, index=extended_prices.index)
+df_recovery.to_csv(filename)
+
+print(f"Simulation Start (Peak): {start_date.date()}")
+print(f"Recovery Date (Back to Peak): {recovery_date.date()}")
+print(f"Extended End Date: {extended_end_date.date()}")
+print(f"Final Balance after extension: ${df_recovery['SP500'].iloc[-1]:,.0f}")
