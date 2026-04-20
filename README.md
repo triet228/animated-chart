@@ -53,6 +53,13 @@ Different branches in this repository feature unique variations of the animated 
 | `retirement` | Retirement focus animated chart. |
 
 
+```bash
+git checkout retirement
+python main.py
+```
+
+
+
 ## License
 
 This project is open-source and distributed under a Copyleft License. See the `LICENSE` file for more details.
