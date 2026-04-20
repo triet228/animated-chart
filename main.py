@@ -12,7 +12,7 @@ from moviepy import VideoFileClip, AudioFileClip
 csv_file = "data.csv"
 tickers = ['$500'] 
 FPS = 60 
-DURATION_SECONDS = 15  
+DURATION_SECONDS = 10
 PAUSE_SECONDS = 0  # ADDED: 3 second pause
 TOTAL_FRAMES = FPS * DURATION_SECONDS
 PAUSE_FRAMES = FPS * PAUSE_SECONDS
