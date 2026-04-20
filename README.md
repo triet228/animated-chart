@@ -1,3 +1,3 @@
-# Millionaire branch
+# Contribution branch
 
-This branch specifically focus on race between stocks until reach 1 Million Dollars
+This branch specifically focus on monthly contribution to reach money goal
