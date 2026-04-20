@@ -92,7 +92,7 @@ def init():
 winning_frames = value_data[(value_data[tickers] >= 1000000).any(axis=1)].index
 winning_frame = winning_frames[0] if len(winning_frames) > 0 else TOTAL_FRAMES - 1
 
-pbar = tqdm(total=TOTAL_FRAMES, desc="Rendering Borderless Battle")
+pbar = tqdm(total=TOTAL_FRAMES, desc="Rendering")
 def update(frame):
     pbar.update(1)
     
