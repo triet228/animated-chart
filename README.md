@@ -6,6 +6,13 @@ Youtube playlist: https://www.youtube.com/playlist?list=PLhtWoD9f53K85YdW4S_VDj_
 
 https://github.com/user-attachments/assets/7ec80d3f-a488-4e7b-b3f3-ccc8a6491e71
 
+
+
+https://github.com/user-attachments/assets/6be1235f-ae65-4b2d-a978-847ecd796d43
+
+
+
+
 ## Project Structure
 
 * `main.py`: The main script. Run this to generate the final `output.mp4` video.
