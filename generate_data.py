@@ -10,7 +10,8 @@ ticker_map = {
     'VOO': 'VOO',
     'ONEQ': 'ONEQ',
     'AAPL': 'AAPL',
-    'TSLA': 'TSLA'
+    'TSLA': 'TSLA',
+    'GC=F': 'Gold',
 }
 
 tickers = list(ticker_map.keys())

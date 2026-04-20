@@ -10,12 +10,12 @@ from moviepy import VideoFileClip, AudioFileClip
 
 # 1. Configuration
 csv_file = "data.csv"
-tickers = ['VOO', 'ONEQ'] 
+tickers = ['SP500', 'Gold'] 
 FPS = 60 
 DURATION_SECONDS = 15  
 TOTAL_FRAMES = FPS * DURATION_SECONDS
 INITIAL_INVESTMENT = 10000
-START_YEAR, END_YEAR = 2025-40, 2025
+START_YEAR, END_YEAR = 2003, 2025
 output_name = "output.mp4"
 
 COLORS = ['#00ffcc', '#ff0077', '#ffff00', '#0077ff', '#ff8800', '#cc00ff', '#ffffff']
@@ -72,7 +72,7 @@ def currency(x, pos=None):
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency))
 ax.tick_params(axis='both', labelsize=12, colors='#888888')
-ax.set_title("SP500 VS NASDAQ", fontsize=40, pad=50, fontweight='bold')
+ax.set_title("SP500 VS GOLD", fontsize=40, pad=50, fontweight='bold')
 
 winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center', 
                       fontsize=45, fontweight='bold', color='white', alpha=0)
