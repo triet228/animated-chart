@@ -77,7 +77,7 @@ ax.tick_params(axis='both', labelsize=18, colors='#888888')
 ax.set_title("INVEST $500 A MONTH", fontsize=40, pad=60, fontweight='bold')
 
 ax.axhline(y=1000000, color='white', linestyle='--', alpha=0.3, lw=3)
-ax.text(dates_interp[0], 1000000 + 20000, " $1M RACE", color='white', 
+ax.text(dates_interp[0], 1000000 + 20000, "$1M", color='white', 
         fontsize=20, fontweight='bold', alpha=0.5, va='bottom')
 
 winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center', 
