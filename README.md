@@ -23,7 +23,7 @@ pip install pandas numpy matplotlib moviepy tqdm
 Clone the repository to your local machine:
 
 ```bash
-git clone [https://github.com/triet228/animated-chart.git](https://github.com/triet228/animated-chart.git)
+git clone https://github.com/triet228/animated-chart.git
 cd animated-chart
 ```
 
