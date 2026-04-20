@@ -1,49 +1,47 @@
 import yfinance as yf
 import pandas as pd
 
-# 1. Configuration
 filename = "data.csv"
-# Mapping dictionary to rename symbols to clean names later
-ticker_map = {
-    '^GSPC': 'SP500',
-    '^IXIC': 'NASDAQ',
-    'VOO': 'VOO',
-    'ONEQ': 'ONEQ',
-    'VTI': 'VTI'
-}
+INITIAL_BALANCE = 1
+SP500_WEIGHT = 1.00
+CASH_WEIGHT = 0.00
+CASH_ANNUAL_INTEREST = 0.03
+ANNUAL_INFLATION = 0.025
+CONTRIBUTIONS = [100, 500, 1000] 
 
-tickers = list(ticker_map.keys())
+# 1. Market Growth (Real Terms)
+df_raw = yf.download("^GSPC", period="max", interval="1d", auto_adjust=True)
+prices = df_raw['Close']
+if isinstance(prices, pd.DataFrame): prices = prices.iloc[:, 0]
 
-print(f"Fetching max historical data for: {tickers}")
+sp500_ret = prices.pct_change().dropna()
+daily_cash = (1 + CASH_ANNUAL_INTEREST)**(1/252) - 1
+daily_inf = (1 + ANNUAL_INFLATION)**(1/252) - 1
+# Real Daily Return = ((1 + Nominal) / (1 + Inflation)) - 1
+nominal_daily = (sp500_ret * SP500_WEIGHT) + (daily_cash * CASH_WEIGHT)
+daily_real_return = ((1 + nominal_daily) / (1 + daily_inf)) - 1
+monthly_market_growth = (1 + daily_real_return).resample('ME').prod()
 
-# 2. Download Real Monthly Data
-# 'auto_adjust=True' makes 'Close' the same as 'Adj Close'
-df_raw = yf.download(tickers, period="max", interval="1mo", auto_adjust=True)
+# 2. Simulate Dollar Balances
+df_final = pd.DataFrame(index=monthly_market_growth.index)
+monthly_inf_factor = (1 + ANNUAL_INFLATION)**(1/12)
 
-# 3. Extract just the 'Close' prices
-# If downloading multiple tickers, 'Close' is a level in the MultiIndex
-if 'Close' in df_raw.columns:
-    prices = df_raw['Close']
-else:
-    # Fallback if only one ticker or different structure
-    prices = df_raw
+for amount in CONTRIBUTIONS:
+    balance = INITIAL_BALANCE
+    current_adj_contribution = amount
+    balance_history = []
+    
+    for market_growth in monthly_market_growth:
+        # Market acts on existing money, then we add the new money
+        balance = (balance * market_growth) + current_adj_contribution
+        balance_history.append(balance)
+        
+        # Increase contribution for next month to keep up with inflation
+        current_adj_contribution *= monthly_inf_factor
+        
+    df_final[str(amount)] = balance_history
 
-# 4. Calculate Monthly Percentage Change
-returns = prices.pct_change() * 100
-
-# 5. Clean and Rename
-df = returns.dropna(how='all').reset_index()
-df['Date'] = df['Date'].dt.strftime('%Y-%m-%d')
-
-# Rename columns using our map
-df = df.rename(columns=ticker_map)
-
-# 6. Format as Percentage Strings
-# We use the values from the map for the loop
-for col in ticker_map.values():
-    if col in df.columns:
-        df[col] = df[col].map(lambda x: f"{x:.2f}%" if pd.notnull(x) else "")
-
-# 7. Save
-df.to_csv(filename, index=False)
-print(f"Done! Created {filename} with cleaned columns: {list(ticker_map.values())}")
+# 3. Export
+df_final.index.name = 'Date'
+df_final.to_csv(filename)
+print(f"Done! {filename} now contains actual dollar balances.")
