@@ -2,6 +2,8 @@
 
 A Python project that creates an financial animated chart. 
 
+Youtube playlist: https://www.youtube.com/playlist?list=PLhtWoD9f53K85YdW4S_VDj_1OeaxnEyJb
+
 https://github.com/user-attachments/assets/7ec80d3f-a488-4e7b-b3f3-ccc8a6491e71
 
 ## Project Structure
