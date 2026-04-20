@@ -48,7 +48,7 @@ Different branches in this repository feature unique variations of the animated 
 | Branch Name | Description |
 | :--- | :--- |
 | `main` | The default animated chart racing up to the end of the provided data. |
-| `millionaire` | Races the stocks and freezes the animation exactly when the first one reaches the $1,000,000 mark. |
+| `millionaire` | Races the stocks and freezes the animation exactly when the first one reaches the $1M mark. |
 
 
 ## License
