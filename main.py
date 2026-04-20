@@ -10,12 +10,12 @@ from moviepy import VideoFileClip, AudioFileClip
 
 # 1. Configuration
 csv_file = "data.csv"
-tickers = ['SP500', 'Gold'] 
+tickers = ['SP500', 'Inflation'] 
 FPS = 60 
-DURATION_SECONDS = 15  
+DURATION_SECONDS = 30  
 TOTAL_FRAMES = FPS * DURATION_SECONDS
 INITIAL_INVESTMENT = 10000
-START_YEAR, END_YEAR = 2003, 2025
+START_YEAR, END_YEAR = 0, 2025
 output_name = "output.mp4"
 
 COLORS = ['#00ffcc', '#ff0077', '#ffff00', '#0077ff', '#ff8800', '#cc00ff', '#ffffff']
@@ -61,7 +61,7 @@ lines = [ax.plot([], [], label=t, color=COLORS[i % len(COLORS)], lw=5)[0] for i,
 
 # ADDED: Moving labels instead of a static legend
 line_labels = [ax.text(0, 0, f" {t}", color=COLORS[i % len(COLORS)], 
-                       fontsize=18, fontweight='bold', va='center') for i, t in enumerate(tickers)]
+                       fontsize=12, fontweight='bold', va='center') for i, t in enumerate(tickers)]
 
 ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 plt.xticks(fontsize=18, color='#888888')
@@ -72,7 +72,7 @@ def currency(x, pos=None):
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency))
 ax.tick_params(axis='both', labelsize=12, colors='#888888')
-ax.set_title("SP500 VS GOLD", fontsize=40, pad=50, fontweight='bold')
+ax.set_title("SP500 VS INFLATION", fontsize=40, pad=50, fontweight='bold')
 
 winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center', 
                       fontsize=45, fontweight='bold', color='white', alpha=0)

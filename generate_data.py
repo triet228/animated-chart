@@ -1,9 +1,10 @@
 import yfinance as yf
 import pandas as pd
+import pandas_datareader.data as web
+import datetime
 
 # 1. Configuration
 filename = "data.csv"
-# Mapping dictionary to rename symbols to clean names later
 ticker_map = {
     '^GSPC': 'SP500',
     '^IXIC': 'NASDAQ',
@@ -13,39 +14,48 @@ ticker_map = {
     'TSLA': 'TSLA',
     'GC=F': 'Gold',
 }
-
 tickers = list(ticker_map.keys())
 
 print(f"Fetching max historical data for: {tickers}")
 
 # 2. Download Real Monthly Data
-# 'auto_adjust=True' makes 'Close' the same as 'Adj Close'
 df_raw = yf.download(tickers, period="max", interval="1mo", auto_adjust=True)
 
-# 3. Extract just the 'Close' prices
-# If downloading multiple tickers, 'Close' is a level in the MultiIndex
 if 'Close' in df_raw.columns:
     prices = df_raw['Close']
 else:
-    # Fallback if only one ticker or different structure
     prices = df_raw
 
-# 4. Calculate Monthly Percentage Change
+# 3. Calculate Monthly Percentage Change
 returns = prices.pct_change() * 100
 
-# 5. Clean and Rename
+# --- NEW: Fetch Inflation Data (CPI) from FRED ---
+print("Fetching inflation data from FRED...")
+start_date = returns.index.min()
+end_date = datetime.date.today()
+cpi_data = web.DataReader('CPIAUCSL', 'fred', start_date, end_date)
+
+# Calculate monthly inflation rate
+cpi_returns = cpi_data.pct_change() * 100
+cpi_returns.columns = ['Inflation']
+
+# Remove timezone from yfinance index so it can merge with FRED data
+returns.index = returns.index.tz_localize(None) 
+returns = returns.join(cpi_returns)
+# --------------------------------------------------
+
+# 4. Clean and Rename
 df = returns.dropna(how='all').reset_index()
 df['Date'] = df['Date'].dt.strftime('%Y-%m-%d')
 
-# Rename columns using our map
 df = df.rename(columns=ticker_map)
 
-# 6. Format as Percentage Strings
-# We use the values from the map for the loop
-for col in ticker_map.values():
+# 5. Format as Percentage Strings
+cols_to_format = list(ticker_map.values()) + ['Inflation']
+for col in cols_to_format:
     if col in df.columns:
         df[col] = df[col].map(lambda x: f"{x:.2f}%" if pd.notnull(x) else "")
 
-# 7. Save
+# 6. Save
 df.to_csv(filename, index=False)
-print(f"Done! Created {filename} with cleaned columns: {list(ticker_map.values())}")
+print(f"Done! Created {filename} with cleaned columns: {cols_to_format}")
