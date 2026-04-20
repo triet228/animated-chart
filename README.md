@@ -50,6 +50,7 @@ Different branches in this repository feature unique variations of the animated 
 | `main` | The default animated chart racing up to the end of the provided data. |
 | `millionaire` | Races the stocks until one reaches $1M. |
 | `leverage` | Races the stocks until one reaches $0. |
+| `retirement` | Retirement focus animated chart. |
 
 
 ## License
