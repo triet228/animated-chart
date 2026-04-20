@@ -83,7 +83,7 @@ def init():
     return *lines, *line_labels, winner_text  # UPDATED
 
 # 4. Rendering
-pbar = tqdm(total=TOTAL_FRAMES, desc="Rendering Borderless Battle")
+pbar = tqdm(total=TOTAL_FRAMES, desc="Rendering")
 def update(frame):
     pbar.update(1)
     current_idx = max(1, frame)
