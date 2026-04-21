@@ -15,11 +15,8 @@ ticker_map = {
     'GC=F': 'Gold',
 }
 ticker_map = {
-    'META': 'META',
-    'AMZN': 'AMZN',
-    'AAPL': 'AAPL',
-    'NFLX': 'NFLX',
-    'GOOGL': 'GOOGL',
+    'GC=F': 'Gold',
+    'SI=F': 'Silver',
 }
 
 tickers = list(ticker_map.keys())
