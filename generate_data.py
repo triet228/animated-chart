@@ -14,6 +14,14 @@ ticker_map = {
     'TSLA': 'TSLA',
     'GC=F': 'Gold',
 }
+ticker_map = {
+    'META': 'META',
+    'AMZN': 'AMZN',
+    'AAPL': 'AAPL',
+    'NFLX': 'NFLX',
+    'GOOGL': 'GOOGL',
+}
+
 tickers = list(ticker_map.keys())
 
 print(f"Fetching max historical data for: {tickers}")

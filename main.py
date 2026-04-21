@@ -11,9 +11,12 @@ from moviepy import VideoFileClip, AudioFileClip
 # 1. Configuration
 csv_file = "data.csv"
 tickers = ['SP500', 'Inflation'] 
+tickers = ['META', 'AMZN', 'AAPL', 'GOOGL']
 FPS = 60 
 DURATION_SECONDS = 30  
-TOTAL_FRAMES = FPS * DURATION_SECONDS
+PAUSE_SECONDS = 3  
+ANIMATION_FRAMES = FPS * DURATION_SECONDS
+TOTAL_FRAMES = ANIMATION_FRAMES + (FPS * PAUSE_SECONDS)
 INITIAL_INVESTMENT = 10000
 START_YEAR, END_YEAR = 0, 2025
 output_name = "output.mp4"
@@ -41,7 +44,7 @@ raw_dates = [data['Date'].iloc[0] - pd.DateOffset(months=1)] + data['Date'].toli
 raw_date_nums = mdates.date2num(raw_dates)
 
 x_old = np.linspace(0, len(raw_values) - 1, len(raw_values))
-x_new = np.linspace(0, len(raw_values) - 1, TOTAL_FRAMES)
+x_new = np.linspace(0, len(raw_values) - 1, ANIMATION_FRAMES) # Changed here
 
 value_data = pd.DataFrame({col: np.interp(x_new, x_old, raw_values[col]) for col in tickers})
 dates_interp = np.interp(x_new, x_old, raw_date_nums)
@@ -72,7 +75,7 @@ def currency(x, pos=None):
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency))
 ax.tick_params(axis='both', labelsize=12, colors='#888888')
-ax.set_title("SP500 VS INFLATION", fontsize=40, pad=50, fontweight='bold')
+ax.set_title("THE FAAG RACE", fontsize=40, pad=50, fontweight='bold')
 
 winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center', 
                       fontsize=45, fontweight='bold', color='white', alpha=0)
@@ -86,9 +89,11 @@ def init():
 pbar = tqdm(total=TOTAL_FRAMES, desc="Rendering")
 def update(frame):
     pbar.update(1)
-    current_idx = max(1, frame)
+
+    current_idx = min(frame, ANIMATION_FRAMES - 1)
+    current_idx = max(1, current_idx)
     current_slice = value_data.iloc[:current_idx+1]
-    
+
     for i, ticker in enumerate(tickers):
         lines[i].set_data(dates_interp[:current_idx+1], current_slice[ticker])
         # UPDATED: Move the label to the current end of the line
@@ -102,10 +107,20 @@ def update(frame):
     current_max = current_slice.max().max()
     ax.set_ylim(current_min * 0.95, current_max * 1.1)
 
-    if frame == TOTAL_FRAMES - 1:
+    if frame >= ANIMATION_FRAMES - 1:
         final_scores = {t: value_data[t].iloc[-1] for t in tickers}
-        win = max(final_scores, key=final_scores.get)
-        winner_text.set_text(f"{win} WINS!\n{currency(final_scores[win])}")
+        
+        # Sort the companies by their final score from highest to lowest
+        sorted_scores = sorted(final_scores.items(), key=lambda item: item[1], reverse=True)
+        
+        # Build the ranking text
+        ranking_lines = ["FINAL RANKING:"]
+        for rank, (company, score) in enumerate(sorted_scores, start=1):
+            ranking_lines.append(f"#{rank} {company}: {currency(score)}")
+            
+        # Combine the lines and display them
+        final_text = "\n".join(ranking_lines)
+        winner_text.set_text(final_text)
         winner_text.set_alpha(1)
         
     return *lines, *line_labels, winner_text  # UPDATED
