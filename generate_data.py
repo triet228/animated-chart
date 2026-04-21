@@ -13,10 +13,8 @@ ticker_map = {
     'AAPL': 'AAPL',
     'TSLA': 'TSLA',
     'GC=F': 'Gold',
-}
-ticker_map = {
-    'GC=F': 'Gold',
-    'SI=F': 'Silver',
+    'XLE': 'Energy',
+    'XLV': 'HealthCare',
 }
 
 tickers = list(ticker_map.keys())

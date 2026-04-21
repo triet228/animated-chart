@@ -10,8 +10,7 @@ from moviepy import VideoFileClip, AudioFileClip
 
 # 1. Configuration
 csv_file = "data.csv"
-tickers = ['SP500', 'Inflation'] 
-tickers = ['Gold', 'Silver']
+tickers = ['Energy', 'HealthCare']
 FPS = 60 
 DURATION_SECONDS = 30  
 PAUSE_SECONDS = 3  
@@ -21,7 +20,7 @@ INITIAL_INVESTMENT = 10000
 START_YEAR, END_YEAR = 0, 2025
 output_name = "output.mp4"
 
-COLORS = ['#FFD700', '#C0C0C0', '#00ffcc', '#ff0077', '#ffff00', '#0077ff', '#ff8800', '#cc00ff', '#ffffff']
+COLORS = [f"#{random.randint(128, 255):02x}{random.randint(128, 255):02x}{random.randint(128, 255):02x}" for _ in range(len(tickers))]
 audio_path = os.path.join("songs", f"song{random.randint(1, 100):03}.mp3")
 
 # 2. Data Cleaning
@@ -75,7 +74,8 @@ def currency(x, pos=None):
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency))
 ax.tick_params(axis='both', labelsize=12, colors='#888888')
-ax.set_title("GOLD VS SILVER", fontsize=40, pad=50, fontweight='bold')
+title_text = " VS ".join(tickers).upper()
+ax.set_title(title_text, fontsize=40, pad=50, fontweight='bold')
 
 winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center', 
                       fontsize=45, fontweight='bold', color='white', alpha=0)
