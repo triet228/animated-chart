@@ -32,7 +32,7 @@ else:
 # 3. Calculate Monthly Percentage Change
 returns = prices.pct_change() * 100
 
-# --- NEW: Fetch Inflation Data (CPI) from FRED ---
+# --- Fetch Inflation Data (CPI) from FRED ---
 print("Fetching inflation data from FRED...")
 start_date = returns.index.min()
 end_date = datetime.date.today()
@@ -45,7 +45,12 @@ cpi_returns.columns = ['Inflation']
 # Remove timezone from yfinance index so it can merge with FRED data
 returns.index = returns.index.tz_localize(None) 
 returns = returns.join(cpi_returns)
-# --------------------------------------------------
+
+# --- NEW: Add 10% Annual Constant Return ---
+# Convert 10% annual to a monthly compounded rate
+monthly_10_percent = ((1.09 ** (1/12)) - 1) * 100
+returns['9% Annual'] = monthly_10_percent
+# ------------------------------------------
 
 # 4. Clean and Rename
 df = returns.dropna(how='all').reset_index()
@@ -54,7 +59,7 @@ df['Date'] = df['Date'].dt.strftime('%Y-%m-%d')
 df = df.rename(columns=ticker_map)
 
 # 5. Format as Percentage Strings
-cols_to_format = list(ticker_map.values()) + ['Inflation']
+cols_to_format = list(ticker_map.values()) + ['Inflation', '7% Annual']
 for col in cols_to_format:
     if col in df.columns:
         df[col] = df[col].map(lambda x: f"{x:.2f}%" if pd.notnull(x) else "")

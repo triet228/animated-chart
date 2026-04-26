@@ -10,9 +10,9 @@ from moviepy import VideoFileClip, AudioFileClip
 
 # 1. Configuration
 csv_file = "data.csv"
-tickers = ['Energy', 'HealthCare']
+tickers = ['SP500', '9% Annual']
 FPS = 60 
-DURATION_SECONDS = 5
+DURATION_SECONDS = 15
 PAUSE_SECONDS = 3  
 ANIMATION_FRAMES = FPS * DURATION_SECONDS
 TOTAL_FRAMES = ANIMATION_FRAMES + (FPS * PAUSE_SECONDS)
@@ -20,7 +20,8 @@ INITIAL_INVESTMENT = 10000
 START_YEAR, END_YEAR = 0, 2025
 output_name = "output.mp4"
 
-COLORS = [f"#{random.randint(128, 255):02x}{random.randint(128, 255):02x}{random.randint(128, 255):02x}" for _ in range(len(tickers))]
+PALETTE = ['#00E5FF', '#2979FF', '#651FFF', '#D500F9', '#F50057', '#FF1744', '#FF9100', '#FFEA00', '#00E676', '#1DE9B6', '#00B0FF', '#76FF03', '#C6FF00', '#F4FF81', '#FF8A80', '#FF4081', '#E040FB', '#7C4DFF', '#536DFE', '#448AFF']
+COLORS = random.sample(PALETTE, len(tickers))
 audio_path = os.path.join("songs", f"song{random.randint(1, 100):03}.mp3")
 
 # 2. Data Cleaning
