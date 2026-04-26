@@ -19,6 +19,7 @@ ticker_map = {
     'VNQ': 'Real Estate',
     '005930.KS': 'Samsung',
     'ZM': 'Zoom',
+    'EFA': 'International',
 }
 
 tickers = list(ticker_map.keys())

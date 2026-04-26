@@ -10,7 +10,7 @@ from moviepy import VideoFileClip, AudioFileClip
 
 # 1. Configuration
 csv_file = "data.csv"
-tickers = ['SP500', 'Zoom']
+tickers = ['SP500', 'International']
 FPS = 60 
 DURATION_SECONDS = 15
 PAUSE_SECONDS = 3  
@@ -21,8 +21,8 @@ START_YEAR, END_YEAR = 2019, 2025
 output_name = "output.mp4"
 
 BRAND_COLORS = {
-    'SP500': '#A2AAAD',  # Steady, boring Gray
-    'Zoom': '#2D8CFF'    # Official Zoom Blue
+    'SP500': '#2979FF',       # US Blue
+    'International': '#FFD600' # Global Gold
 }
 
 COLORS = [BRAND_COLORS.get(t, '#FFFFFF') for t in tickers]
