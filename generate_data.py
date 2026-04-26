@@ -17,6 +17,8 @@ ticker_map = {
     'XLV': 'HealthCare',
     'BTC-USD': 'Bitcoin',
     'VNQ': 'Real Estate',
+    '005930.KS': 'Samsung',
+    'ZM': 'Zoom',
 }
 
 tickers = list(ticker_map.keys())
