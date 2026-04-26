@@ -10,7 +10,7 @@ from moviepy import VideoFileClip, AudioFileClip
 
 # 1. Configuration
 csv_file = "data.csv"
-tickers = ['SP500', '9% Annual']
+tickers = ['SP500', 'Bitcoin']
 FPS = 60 
 DURATION_SECONDS = 15
 PAUSE_SECONDS = 3  

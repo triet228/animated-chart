@@ -15,6 +15,8 @@ ticker_map = {
     'GC=F': 'Gold',
     'XLE': 'Energy',
     'XLV': 'HealthCare',
+    'BTC-USD': 'Bitcoin',
+    'VNQ': 'Real Estate',
 }
 
 tickers = list(ticker_map.keys())
