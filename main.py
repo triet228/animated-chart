@@ -12,7 +12,7 @@ from moviepy import VideoFileClip, AudioFileClip
 csv_file = "data.csv"
 tickers = ['Energy', 'HealthCare']
 FPS = 60 
-DURATION_SECONDS = 30  
+DURATION_SECONDS = 5
 PAUSE_SECONDS = 3  
 ANIMATION_FRAMES = FPS * DURATION_SECONDS
 TOTAL_FRAMES = ANIMATION_FRAMES + (FPS * PAUSE_SECONDS)
@@ -43,7 +43,7 @@ raw_dates = [data['Date'].iloc[0] - pd.DateOffset(months=1)] + data['Date'].toli
 raw_date_nums = mdates.date2num(raw_dates)
 
 x_old = np.linspace(0, len(raw_values) - 1, len(raw_values))
-x_new = np.linspace(0, len(raw_values) - 1, ANIMATION_FRAMES) # Changed here
+x_new = np.linspace(0, len(raw_values) - 1, ANIMATION_FRAMES)
 
 value_data = pd.DataFrame({col: np.interp(x_new, x_old, raw_values[col]) for col in tickers})
 dates_interp = np.interp(x_new, x_old, raw_date_nums)
@@ -51,7 +51,9 @@ dates_interp = np.interp(x_new, x_old, raw_date_nums)
 # 3. Plot Setup
 plt.style.use('dark_background')
 fig, ax = plt.subplots(figsize=(9, 16), dpi=120)
-plt.subplots_adjust(left=0.18, right=0.9, top=0.85, bottom=0.15) 
+
+# FIX: Changed right margin from 0.9 to 0.75 to leave space for YouTube UI buttons
+plt.subplots_adjust(left=0.18, right=0.75, top=0.85, bottom=0.15) 
 
 # REMOVE BORDERS
 ax.spines['top'].set_visible(False)
@@ -61,7 +63,6 @@ ax.spines['bottom'].set_color('#444444')
 
 lines = [ax.plot([], [], label=t, color=COLORS[i % len(COLORS)], lw=5)[0] for i, t in enumerate(tickers)]
 
-# ADDED: Moving labels instead of a static legend
 line_labels = [ax.text(0, 0, f" {t}", color=COLORS[i % len(COLORS)], 
                        fontsize=12, fontweight='bold', va='center') for i, t in enumerate(tickers)]
 
@@ -83,7 +84,7 @@ winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center',
 def init():
     ax.set_xlim(dates_interp[0], dates_interp[1])
     ax.set_ylim(INITIAL_INVESTMENT * 0.9, INITIAL_INVESTMENT * 1.1)
-    return *lines, *line_labels, winner_text  # UPDATED
+    return *lines, *line_labels, winner_text  
 
 # 4. Rendering
 pbar = tqdm(total=TOTAL_FRAMES, desc="Rendering")
@@ -96,18 +97,16 @@ def update(frame):
 
     for i, ticker in enumerate(tickers):
         lines[i].set_data(dates_interp[:current_idx+1], current_slice[ticker])
-        # UPDATED: Move the label to the current end of the line
         current_x = dates_interp[current_idx]
         current_y = current_slice[ticker].iloc[-1]
         line_labels[i].set_position((current_x - 80, current_y + 1000))
     
-    # UPDATED: Increased padding so text doesn't cut off
     ax.set_xlim(dates_interp[0], dates_interp[current_idx] + 150)
     current_min = current_slice.min().min()
     current_max = current_slice.max().max()
     ax.set_ylim(current_min * 0.95, current_max * 1.1)
 
-    return *lines, *line_labels, winner_text  # UPDATED
+    return *lines, *line_labels, winner_text  
 
 ani = FuncAnimation(fig, update, frames=TOTAL_FRAMES, init_func=init, blit=False)
 ani.save('temp_silent.mp4', writer='ffmpeg', fps=FPS, bitrate=5000)
