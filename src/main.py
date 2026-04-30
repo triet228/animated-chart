@@ -20,7 +20,7 @@ import generate_data
 # 1. GLOBAL CONFIGURATION
 # ==========================================
 FPS = 60
-DURATION_SECONDS = 2
+DURATION_SECONDS = 26
 PAUSE_SECONDS = 3
 INITIAL_INVESTMENT = 10000
 START_YEAR, END_YEAR = 0, 2025
@@ -42,12 +42,8 @@ PALETTE = [
 # 2. DATA PREPARATION
 # ==========================================
 def load_and_clean_data():
-    if not csv_file.exists():
-        print("data.csv not found. Fetching data...")
-        df = generate_data.get_portfolio_data()
-        df.to_csv(csv_file, index=False)
-    else:
-        df = pd.read_csv(csv_file)
+    df = generate_data.get_portfolio_data()
+    df.to_csv(csv_file, index=False)
 
     df['Date'] = pd.to_datetime(df['Date'])
     df['Year'] = df['Date'].dt.year
@@ -67,13 +63,8 @@ COLORS = random.sample(PALETTE, len(tickers))
 # ==========================================
 # 3. MATHEMATICAL INTERPOLATION
 # ==========================================
-compounded = (1 + data[tickers] / 100).cumprod()
-raw_values = pd.concat([
-    pd.DataFrame([[1.0]*len(tickers)], columns=tickers), 
-    compounded
-], ignore_index=True) * INITIAL_INVESTMENT
-
-raw_dates = [data['Date'].iloc[0] - pd.DateOffset(months=1)] + data['Date'].tolist()
+raw_values = data[tickers]
+raw_dates = data['Date'].tolist()
 raw_date_nums = mdates.date2num(raw_dates)
 
 ANIMATION_FRAMES = FPS * DURATION_SECONDS
@@ -105,7 +96,11 @@ def currency_fmt(x, pos=None):
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency_fmt))
 ax.tick_params(axis='both', labelsize=12, colors='#888888')
-ax.set_title(" VS ".join(tickers).upper(), fontsize=40, pad=50, fontweight='bold')
+title_text = " VS ".join(tickers).upper()
+if len(title_text) > 20:
+    ax.set_title("\nVS\n".join(tickers).upper(), fontsize=40, pad=50, fontweight='bold')
+else:
+    ax.set_title(" VS ".join(tickers).upper(), fontsize=40, pad=50, fontweight='bold')
 
 # Graphical Elements
 lines = [ax.plot([], [], label=t, color=COLORS[i], lw=5)[0] for i, t in enumerate(tickers)]
