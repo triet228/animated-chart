@@ -14,35 +14,54 @@ from moviepy import VideoFileClip, AudioFileClip
 from pathlib import Path
 
 # 1. Configuration
-project_root = Path(__file__).parent.parent
-csv_file = project_root / "data.csv"
-tickers = ['SP500', 'International']
+src_dir = Path(__file__).parent
+project_root = src_dir.parent # Used to locate the songs directory
+csv_file = src_dir / "data.csv"
 FPS = 60 
-DURATION_SECONDS = 15
+DURATION_SECONDS = 2
 PAUSE_SECONDS = 3  
 ANIMATION_FRAMES = FPS * DURATION_SECONDS
 TOTAL_FRAMES = ANIMATION_FRAMES + (FPS * PAUSE_SECONDS)
 INITIAL_INVESTMENT = 10000
-START_YEAR, END_YEAR = 2019, 2025
-output_name = "output.mp4"
+START_YEAR, END_YEAR = 0, 2025
+output_name = str(src_dir / "output.mp4")
 
-BRAND_COLORS = {
-    'SP500': '#2979FF',       # US Blue
-    'International': '#FFD600' # Global Gold
-}
+# Safely pick an audio file from the animated-chart/songs folder
+songs_dir = project_root / "songs"
+available_songs = list(songs_dir.glob("*.mp3"))
 
-COLORS = [BRAND_COLORS.get(t, '#FFFFFF') for t in tickers]
+if not available_songs:
+    raise FileNotFoundError(f"No .mp3 files found in {songs_dir}")
 
-audio_path = os.path.join("songs", f"song{random.randint(1, 100):03}.mp3")
+audio_path = str(random.choice(available_songs))
 
 # 2. Data Cleaning
 data = pd.read_csv(csv_file)
+exclude_cols = ['Date']
+tickers = [col for col in data.columns if col not in exclude_cols]
 data['Date'] = pd.to_datetime(data['Date'])
 data['Year'] = data['Date'].dt.year
 
 for col in tickers:
     if data[col].dtype == 'object':
         data[col] = data[col].str.replace('%', '').astype(float)
+
+# 10 vibrant colors that look great on a dark background
+PALETTE = [
+    '#00E5FF',  # Neon Cyan
+    '#76FF03',  # Neon Green
+    '#FFD600',  # Bright Yellow
+    '#FF1744',  # Vivid Red
+    '#D500F9',  # Magenta
+    '#1DE9B6',  # Teal
+    '#FF9100',  # Neon Orange
+    '#F50057',  # Hot Pink
+    '#2979FF',  # Bright Blue
+    '#C6FF00'   # Lime
+]
+
+# Randomly select unique colors for your tickers
+COLORS = random.sample(PALETTE, len(tickers))
 
 data = data[(data['Year'] >= START_YEAR) & (data['Year'] <= END_YEAR)]
 data = data.dropna(subset=tickers).reset_index(drop=True)
@@ -121,7 +140,7 @@ def update(frame):
     return *lines, *line_labels, winner_text  
 
 ani = FuncAnimation(fig, update, frames=TOTAL_FRAMES, init_func=init, blit=False)
-temp_video_path = str(project_root / 'temp_silent.mp4')
+temp_video_path = str(src_dir / 'temp_silent.mp4')
 ani.save(temp_video_path, writer='ffmpeg', fps=FPS, bitrate=5000)
 pbar.close()
 
