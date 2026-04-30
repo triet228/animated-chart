@@ -15,11 +15,17 @@ https://github.com/user-attachments/assets/6be1235f-ae65-4b2d-a978-847ecd796d43
 
 ## Project Structure
 
-* `main.py`: The main script. Run this to generate the final `output.mp4` video.
-* `generate_data.py`: A helper script used to generate the stock data.
-* `data.csv`: Contains the generated stock data used for the animation.
-* `songs/`: A directory containing free, public-domain background songs. `main.py` picks one randomly for the video.
+* `README.md`: README file
 * `LICENSE`: Contains the copyleft license for this project.
+* `songs/`: A directory containing free, public-domain background songs. `src/main.py` picks one randomly for the video.
+* `src/main.py`: The main script. Run this to generate the final `src/output.mp4` video.
+* `src/generate_data.py`: A helper script used to generate the data.
+* `src/README.md`: copy of README file
+
+  Temp files:
+* `src/data.csv`: Contains the generated stock data used for the animation.
+* `src/output.mp4`: Output video after running `src/main.py`.
+
 
 ## Requirements
 
@@ -40,17 +46,17 @@ cd animated-chart
 
 ## Usage
 
-1. **Generate the stock data** (if you haven't already):
+1. **Generate the data** (if you are interested in seeing `src/data.csv`):
    ```bash
-   python generate_data.py
+   python src/generate_data.py
    ```
 
 2. **Render the animated video**:
    ```bash
-   python main.py
+   python src/main.py
    ```
 
-The script will render the frames, merge the audio, and output a finished video named `output.mp4` in your current directory.
+The script will render the frames, merge the audio, and output a finished video at `src/output.mp4`.
 
 ## Other Branches
 
@@ -58,16 +64,16 @@ Different branches in this repository feature unique variations of the animated 
 
 | Branch Name | Description |
 | :--- | :--- |
-| `main` | The default animated chart racing up to the end of the provided data. |
+| `main` | The default branch with on going development. |
 | `millionaire` | Races the stocks until one reaches $1M. |
 | `leverage` | Races the stocks until one reaches $0. |
-| `retirement` | Retirement focus on withdraw rate. |
+| `retirement` | Compare withdraw rate. |
 | `contribution` | Invest monthly in stocks. |
 
 Example use of branch
 ```bash
 git checkout retirement
-python main.py
+python src/main.py
 ```
 
 ## License
