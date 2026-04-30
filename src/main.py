@@ -1,5 +1,7 @@
 # src/main.py
 
+import sys
+import subprocess
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,6 +11,7 @@ from tqdm import tqdm
 import random
 import os
 from moviepy import VideoFileClip, AudioFileClip
+from pathlib import Path
 
 # 1. Configuration
 project_root = Path(__file__).parent.parent
@@ -108,7 +111,7 @@ def update(frame):
         lines[i].set_data(dates_interp[:current_idx+1], current_slice[ticker])
         current_x = dates_interp[current_idx]
         current_y = current_slice[ticker].iloc[-1]
-        line_labels[i].set_position((current_x - 80, current_y + 1000))
+        line_labels[i].set_position((current_x, current_y + 1000))
     
     ax.set_xlim(dates_interp[0], dates_interp[current_idx] + 150)
     current_min = current_slice.min().min()
@@ -125,8 +128,19 @@ pbar.close()
 # 5. Audio Merge
 video_clip = VideoFileClip(temp_video_path)
 final_video = video_clip.with_audio(AudioFileClip(audio_path).subclipped(0, video_clip.duration))
+audio_clip = AudioFileClip(audio_path).subclipped(2, 2 + video_clip.duration)
+final_video = video_clip.with_audio(audio_clip)
 final_video.write_videofile(output_name, codec="libx264", threads=8, fps=FPS)
 
 video_clip.close()
 if os.path.exists(temp_video_path):
     os.remove(temp_video_path)
+
+# Open the generated video automatically
+print("Opening video...")
+if sys.platform == "win32":
+    os.startfile(output_name)
+elif sys.platform == "darwin":  # macOS
+    subprocess.call(["open", output_name])
+else:  # Linux (Arch, Ubuntu, etc.)
+    subprocess.call(["xdg-open", output_name])
