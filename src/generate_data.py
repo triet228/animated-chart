@@ -1,3 +1,5 @@
+# src/generate_data.py
+
 import yfinance as yf
 import pandas as pd
 import pandas_datareader.data as web

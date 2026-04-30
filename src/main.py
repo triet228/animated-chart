@@ -1,3 +1,5 @@
+# src/main.py
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,7 +11,8 @@ import os
 from moviepy import VideoFileClip, AudioFileClip
 
 # 1. Configuration
-csv_file = "data.csv"
+project_root = Path(__file__).parent.parent
+csv_file = project_root / "data.csv"
 tickers = ['SP500', 'International']
 FPS = 60 
 DURATION_SECONDS = 15
@@ -115,14 +118,15 @@ def update(frame):
     return *lines, *line_labels, winner_text  
 
 ani = FuncAnimation(fig, update, frames=TOTAL_FRAMES, init_func=init, blit=False)
-ani.save('temp_silent.mp4', writer='ffmpeg', fps=FPS, bitrate=5000)
+temp_video_path = str(project_root / 'temp_silent.mp4')
+ani.save(temp_video_path, writer='ffmpeg', fps=FPS, bitrate=5000)
 pbar.close()
 
 # 5. Audio Merge
-video_clip = VideoFileClip("temp_silent.mp4")
+video_clip = VideoFileClip(temp_video_path)
 final_video = video_clip.with_audio(AudioFileClip(audio_path).subclipped(0, video_clip.duration))
 final_video.write_videofile(output_name, codec="libx264", threads=8, fps=FPS)
 
 video_clip.close()
-if os.path.exists("temp_silent.mp4"):
-    os.remove("temp_silent.mp4")
+if os.path.exists(temp_video_path):
+    os.remove(temp_video_path)
