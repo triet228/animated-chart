@@ -12,6 +12,9 @@ import random
 import os
 from moviepy import VideoFileClip, AudioFileClip
 from pathlib import Path
+import generate_data
+
+
 
 # 1. Configuration
 src_dir = Path(__file__).parent
@@ -36,7 +39,14 @@ if not available_songs:
 audio_path = str(random.choice(available_songs))
 
 # 2. Data Cleaning
-data = pd.read_csv(csv_file)
+# Check if CSV exists. If not, generate and pass the data directly.
+if not csv_file.exists():
+    print("data.csv not found. Fetching data directly...")
+    data = generate_data.get_portfolio_data()
+    data.to_csv(csv_file, index=False) # Save it so you don't have to fetch it next time
+else:
+    data = pd.read_csv(csv_file)
+
 exclude_cols = ['Date']
 tickers = [col for col in data.columns if col not in exclude_cols]
 data['Date'] = pd.to_datetime(data['Date'])
@@ -44,7 +54,7 @@ data['Year'] = data['Date'].dt.year
 
 for col in tickers:
     if data[col].dtype == 'object':
-        data[col] = data[col].str.replace('%', '').astype(float)
+        data[col] = data[col].str.replace('%', '').replace('', np.nan).astype(float)
 
 # 10 vibrant colors that look great on a dark background
 PALETTE = [
@@ -146,12 +156,14 @@ pbar.close()
 
 # 5. Audio Merge
 video_clip = VideoFileClip(temp_video_path)
-final_video = video_clip.with_audio(AudioFileClip(audio_path).subclipped(0, video_clip.duration))
 audio_clip = AudioFileClip(audio_path).subclipped(2, 2 + video_clip.duration)
 final_video = video_clip.with_audio(audio_clip)
 final_video.write_videofile(output_name, codec="libx264", threads=8, fps=FPS)
 
 video_clip.close()
+audio_clip.close()
+final_video.close()
+
 if os.path.exists(temp_video_path):
     os.remove(temp_video_path)
 
