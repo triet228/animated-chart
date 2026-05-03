@@ -94,11 +94,11 @@ def currency_fmt(x, pos=None):
     return f'${x*1e-3:.0f}K' if x >= 1e3 else f'${x:.0f}'
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency_fmt))
-ax.set_title("REAL ESTATE\nOVER 40 YEARS", fontsize=35, pad=50, fontweight='bold')
+ax.set_title("FARM LAND\nOVER 40 YEARS", fontsize=35, pad=50, fontweight='bold')
 
 # Graphical Elements - 8% and 5% lines are made to stand out
 lines = []
-a = ['8%', '1.5%']
+a = ['9%', '5%']
 for i, t in enumerate(tickers):
     is_special = t in a
     color = 'white' if is_special else COLORS[i]
