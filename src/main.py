@@ -96,12 +96,12 @@ def currency_fmt(x, pos=None):
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency_fmt))
 ax.tick_params(axis='both', labelsize=12, colors='#888888')
-# title_text = " VS ".join(tickers).upper()
-# if len(title_text) > 20:
-#     ax.set_title("\nVS\n".join(tickers).upper(), fontsize=40, pad=50, fontweight='bold')
-# else:
-#     ax.set_title(" VS ".join(tickers).upper(), fontsize=40, pad=50, fontweight='bold')
-ax.set_title("HOUSE PRICE\nVS\n4x HOUSEHOLD INCOME", fontsize=40, pad=50, fontweight='bold')
+title_text = " VS ".join(tickers).upper()
+if len(title_text) > 20:
+    ax.set_title("\nVS\n".join(tickers).upper(), fontsize=40, pad=50, fontweight='bold')
+else:
+    ax.set_title(" VS ".join(tickers).upper(), fontsize=40, pad=50, fontweight='bold')
+# ax.set_title("BIG MAC\nVS\nMINIMUM WAGE", fontsize=40, pad=50, fontweight='bold')
 
 # Graphical Elements
 lines = [ax.plot([], [], label=t, color=COLORS[i], lw=5)[0] for i, t in enumerate(tickers)]
@@ -128,7 +128,7 @@ def update(frame):
     for i, ticker in enumerate(tickers):
         lines[i].set_data(dates_interp[:idx+1], current_slice[ticker])
         current_x, current_y = dates_interp[idx], current_slice[ticker].iloc[-1]
-        line_labels[i].set_position((current_x, current_y + 1000))
+        line_labels[i].set_position((current_x*1.01, current_y*1.01))
     
     ax.set_xlim(dates_interp[0], dates_interp[idx] + 150)
     ax.set_ylim(current_slice.min().min() * 0.95, current_slice.max().max() * 1.1)
