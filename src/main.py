@@ -20,22 +20,23 @@ import generate_data
 # 1. GLOBAL CONFIGURATION
 # ==========================================
 FPS = 60
-DURATION_SECONDS = 26
-PAUSE_SECONDS = 3
+DURATION_SECONDS = 27
+PAUSE_SECONDS = 5
 INITIAL_INVESTMENT = 10000
-START_YEAR, END_YEAR = 0, 2025
+# Simulation uses dummy dates starting in 1900 to represent "Years Held"
+START_YEAR, END_YEAR = 1900, 2000 
 
-# Path management
 src_dir = Path(__file__).parent
 project_root = src_dir.parent
 csv_file = src_dir / "data.csv"
 output_name = str(src_dir / "output.mp4")
 temp_video_path = str(src_dir / 'temp_silent.mp4')
 
-# Visual Styling
+# Expanded Palette for multiple cohorts
 PALETTE = [
     '#00E5FF', '#76FF03', '#FFD600', '#FF1744', '#D500F9',
-    '#1DE9B6', '#FF9100', '#F50057', '#2979FF', '#C6FF00'
+    '#1DE9B6', '#FF9100', '#F50057', '#2979FF', '#C6FF00',
+    '#FFEA00', '#00B0FF', '#00E676', '#FF3D00', '#D500F9'
 ]
 
 # ==========================================
@@ -49,16 +50,11 @@ def load_and_clean_data():
     df['Year'] = df['Date'].dt.year
     
     tickers = [col for col in df.columns if col not in ['Date', 'Year']]
-    
-    for col in tickers:
-        if df[col].dtype == 'object':
-            df[col] = df[col].str.replace('%', '').replace('', np.nan).astype(float)
-            
     df = df[(df['Year'] >= START_YEAR) & (df['Year'] <= END_YEAR)]
-    return df.dropna(subset=tickers).reset_index(drop=True), tickers
+    return df.reset_index(drop=True), tickers
 
 data, tickers = load_and_clean_data()
-COLORS = random.sample(PALETTE, len(tickers))
+COLORS = (PALETTE * (len(tickers) // len(PALETTE) + 1))[:len(tickers)]
 
 # ==========================================
 # 3. MATHEMATICAL INTERPOLATION
@@ -83,40 +79,41 @@ plt.style.use('dark_background')
 fig, ax = plt.subplots(figsize=(9, 16), dpi=120)
 plt.subplots_adjust(left=0.18, right=0.75, top=0.85, bottom=0.15)
 
-# Axis Styling
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
-ax.spines['left'].set_color('#444444')
-ax.spines['bottom'].set_color('#444444')
-ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+
+# Format X-axis to show "Year X" of the simulation
+def year_fmt(x, pos):
+    dt = mdates.num2date(x)
+    return f"Year {dt.year - 1900}"
+
+ax.xaxis.set_major_formatter(plt.FuncFormatter(year_fmt))
 
 def currency_fmt(x, pos=None):
     if x >= 1e6: return f'${x*1e-6:.1f}M'
     return f'${x*1e-3:.0f}K' if x >= 1e3 else f'${x:.0f}'
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency_fmt))
-ax.tick_params(axis='both', labelsize=12, colors='#888888')
-title_text = " VS ".join(tickers).upper()
-if len(title_text) > 20:
-    ax.set_title("\nVS\n".join(tickers).upper(), fontsize=40, pad=50, fontweight='bold')
-else:
-    ax.set_title(" VS ".join(tickers).upper(), fontsize=40, pad=50, fontweight='bold')
-# ax.set_title("BIG MAC\nVS\nMINIMUM WAGE", fontsize=40, pad=50, fontweight='bold')
+ax.set_title("GOLD PERFORMANCE\nOVER 40 YEARS", fontsize=35, pad=50, fontweight='bold')
 
-# Graphical Elements
-lines = [ax.plot([], [], label=t, color=COLORS[i], lw=5)[0] for i, t in enumerate(tickers)]
-line_labels = [ax.text(0, 0, f" {t}", color=COLORS[i], fontsize=12, 
+# Graphical Elements - Fixed bounds are dashed
+lines = []
+for i, t in enumerate(tickers):
+    ls = '--' if 'Fixed' in t else '-'
+    alpha = 1.0 if 'Fixed' in t else 0.7
+    line, = ax.plot([], [], label=t, color=COLORS[i], lw=5, ls=ls, alpha=alpha)
+    lines.append(line)
+
+line_labels = [ax.text(0, 0, f" {t}", color=COLORS[i], fontsize=10, 
                        fontweight='bold', va='center') for i, t in enumerate(tickers)]
-winner_text = ax.text(0.5, 0.5, '', transform=ax.transAxes, ha='center', 
-                      fontsize=45, fontweight='bold', color='white', alpha=0)
 
 # ==========================================
 # 5. RENDERING ENGINE
 # ==========================================
 def init():
     ax.set_xlim(dates_interp[0], dates_interp[1])
-    ax.set_ylim(INITIAL_INVESTMENT * 0.9, INITIAL_INVESTMENT * 1.1)
-    return *lines, *line_labels, winner_text
+    ax.set_ylim(INITIAL_INVESTMENT * 0.8, INITIAL_INVESTMENT * 1.2)
+    return *lines, *line_labels
 
 pbar = tqdm(total=TOTAL_FRAMES, desc="Rendering")
 
@@ -128,13 +125,12 @@ def update(frame):
     for i, ticker in enumerate(tickers):
         lines[i].set_data(dates_interp[:idx+1], current_slice[ticker])
         current_x, current_y = dates_interp[idx], current_slice[ticker].iloc[-1]
-        line_labels[i].set_position((current_x*1.01, current_y*1.01))
+        line_labels[i].set_position((current_x*1.001, current_y))
     
-    ax.set_xlim(dates_interp[0], dates_interp[idx] + 150)
-    ax.set_ylim(current_slice.min().min() * 0.95, current_slice.max().max() * 1.1)
-    return *lines, *line_labels, winner_text
+    ax.set_xlim(dates_interp[0], dates_interp[idx] + 200)
+    ax.set_ylim(current_slice.min().min() * 0.9, current_slice.max().max() * 1.1)
+    return *lines, *line_labels
 
-# Save silent video
 ani = FuncAnimation(fig, update, frames=TOTAL_FRAMES, init_func=init, blit=False)
 ani.save(temp_video_path, writer='ffmpeg', fps=FPS, bitrate=5000)
 pbar.close()
@@ -144,17 +140,16 @@ pbar.close()
 # ==========================================
 songs_dir = project_root / "songs"
 available_songs = list(songs_dir.glob("*.mp3"))
-if not available_songs:
-    raise FileNotFoundError(f"No .mp3 files in {songs_dir}")
 
 video_clip = VideoFileClip(temp_video_path)
-audio_clip = AudioFileClip(str(random.choice(available_songs))).subclipped(2, 2 + video_clip.duration)
+if available_songs:
+    audio_clip = AudioFileClip(str(random.choice(available_songs))).subclipped(0, video_clip.duration)
+    final_video = video_clip.with_audio(audio_clip)
+else:
+    final_video = video_clip
 
-final_video = video_clip.with_audio(audio_clip)
 final_video.write_videofile(output_name, codec="libx264", threads=8, fps=FPS)
-
 video_clip.close()
-audio_clip.close()
 final_video.close()
 
 if os.path.exists(temp_video_path):
@@ -163,7 +158,6 @@ if os.path.exists(temp_video_path):
 # ==========================================
 # 7. FINAL LAUNCH
 # ==========================================
-print("Opening video...")
 if sys.platform == "win32":
     os.startfile(output_name)
 elif sys.platform == "darwin":
