@@ -96,11 +96,12 @@ def currency_fmt(x, pos=None):
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency_fmt))
 ax.tick_params(axis='both', labelsize=12, colors='#888888')
-title_text = " VS ".join(tickers).upper()
-if len(title_text) > 20:
-    ax.set_title("\nVS\n".join(tickers).upper(), fontsize=40, pad=50, fontweight='bold')
-else:
-    ax.set_title(" VS ".join(tickers).upper(), fontsize=40, pad=50, fontweight='bold')
+# title_text = " VS ".join(tickers).upper()
+# if len(title_text) > 20:
+#     ax.set_title("\nVS\n".join(tickers).upper(), fontsize=40, pad=50, fontweight='bold')
+# else:
+#     ax.set_title(" VS ".join(tickers).upper(), fontsize=40, pad=50, fontweight='bold')
+ax.set_title("HOUSE PRICE\nVS\n4x HOUSEHOLD INCOME", fontsize=40, pad=50, fontweight='bold')
 
 # Graphical Elements
 lines = [ax.plot([], [], label=t, color=COLORS[i], lw=5)[0] for i, t in enumerate(tickers)]
