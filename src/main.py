@@ -20,7 +20,7 @@ import generate_data
 # 1. GLOBAL CONFIGURATION
 # ==========================================
 FPS = 60
-DURATION_SECONDS = 27
+DURATION_SECONDS = 24
 PAUSE_SECONDS = 5
 INITIAL_INVESTMENT = 10000
 # Simulation uses dummy dates starting in 1900 to represent "Years Held"
@@ -94,12 +94,13 @@ def currency_fmt(x, pos=None):
     return f'${x*1e-3:.0f}K' if x >= 1e3 else f'${x:.0f}'
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency_fmt))
-ax.set_title("TREASURY BOND\nOVER 40 YEARS", fontsize=35, pad=50, fontweight='bold')
+ax.set_title("REAL ESTATE\nOVER 40 YEARS", fontsize=35, pad=50, fontweight='bold')
 
 # Graphical Elements - 8% and 5% lines are made to stand out
 lines = []
+a = ['8%', '1.5%']
 for i, t in enumerate(tickers):
-    is_special = t in ['8.5%', '5.5%']
+    is_special = t in a
     color = 'white' if is_special else COLORS[i]
     lw = 8 if is_special else 5
     ls = '--' if is_special else '-'
@@ -108,12 +109,12 @@ for i, t in enumerate(tickers):
     line, = ax.plot([], [], label=t, color=color, lw=lw, ls=ls, alpha=alpha, zorder=5 if is_special else 1)
     lines.append(line)
 
-line_labels = [ax.text(0, 0, f" {t}", color='white' if t in ['8%', '5%'] else COLORS[i], 
+line_labels = [ax.text(0, 0, f" {t}", color='white' if t in a else COLORS[i], 
                        fontsize=10, fontweight='bold', va='center') for i, t in enumerate(tickers)]
 
 line_labels = [ax.text(0, 0, f" {t}",
-               color='white' if t in ['8.5%', '5.5%'] else COLORS[i],
-               fontsize=14 if t in ['8.5%', '5.5%'] else 10,
+               color='white' if t in a else COLORS[i],
+               fontsize=14 if t in a else 10,
                fontweight='bold', va='center') for i, t in enumerate(tickers)]
 
 # ==========================================
