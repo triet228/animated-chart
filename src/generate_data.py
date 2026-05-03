@@ -4,48 +4,48 @@ from pathlib import Path
 
 def get_portfolio_data():
     """
-    Generates realistic 40-year gold trajectories starting at different years.
-    Each starting year is treated as its own portfolio.
+    Generates 40-year US Treasury Bond trajectories.
+    Each starting year (1960-1985) tracks a $10,000 investment.
     """
     filename = Path(__file__).parent / "data.csv"
     initial_investment = 10000
     duration = 40
     
-    # Historical Annual Average Gold Prices (1973 - 2025)
-    gold_prices = {
-        1973: 97.12, 1974: 158.76, 1975: 160.87, 1976: 124.80, 1977: 147.84,
-        1978: 193.57, 1979: 307.01, 1980: 614.75, 1981: 459.16, 1982: 376.11,
-        1983: 423.71, 1984: 360.65, 1985: 317.42, 1986: 368.20, 1987: 446.84,
-        1988: 436.78, 1989: 381.27, 1990: 383.73, 1991: 362.34, 1992: 343.87,
-        1993: 360.05, 1994: 384.16, 1995: 384.07, 1996: 387.73, 1997: 331.00,
-        1998: 294.12, 1999: 278.86, 2000: 279.29, 2001: 271.19, 2002: 310.08,
-        2003: 363.83, 2004: 409.53, 2005: 444.99, 2006: 604.34, 2007: 696.43,
-        2008: 872.37, 2009: 973.66, 2010: 1226.66, 2011: 1573.16, 2012: 1668.86,
-        2013: 1409.51, 2014: 1266.06, 2015: 1158.86, 2016: 1251.92, 2017: 1260.39,
-        2018: 1268.93, 2019: 1393.34, 2020: 1773.73, 2021: 1798.89, 2022: 1801.87,
-        2023: 1927.99, 2024: 2380.00, 2025: 3000.00
+    # Historical Annual Total Returns for 10-Year US Treasury Bonds (1960-2024)
+    # Source: Aswath Damodaran (NYU Stern) - Includes Coupons & Price appreciation
+    bond_returns = {
+        1960: 11.64, 1961: 2.06, 1962: 5.69, 1963: 1.68, 1964: 3.73, 1965: 0.72,
+        1966: 2.91, 1967: -1.58, 1968: 3.27, 1969: -5.01, 1970: 16.75, 1971: 9.79,
+        1972: 2.82, 1973: 3.66, 1974: 1.99, 1975: 3.61, 1976: 15.98, 1977: 1.29,
+        1978: -0.78, 1979: 0.67, 1980: -2.99, 1981: 8.20, 1982: 32.81, 1983: 3.20,
+        1984: 13.73, 1985: 25.71, 1986: 24.28, 1987: -4.96, 1988: 8.22, 1989: 17.69,
+        1990: 6.24, 1991: 15.00, 1992: 9.36, 1993: 14.21, 1994: -8.04, 1995: 23.48,
+        1996: 1.43, 1997: 9.94, 1998: 14.92, 1999: -8.25, 2000: 16.66, 2001: 5.57,
+        2002: 15.12, 2003: 0.38, 2004: 4.49, 2005: 2.87, 2006: 1.97, 2007: 10.21,
+        2008: 20.10, 2009: -11.12, 2010: 8.46, 2011: 16.04, 2012: 2.97, 2013: -9.10,
+        2014: 10.75, 2015: 1.28, 2016: 0.69, 2017: 2.80, 2018: -0.02, 2019: 9.64,
+        2020: 11.33, 2021: -3.65, 2022: -17.83, 2023: 4.49, 2024: 3.50, 2025: 4.00
     }
 
-    # Prepare DataFrame with dummy dates (Year 0 to 40)
     dates = pd.date_range(start="1900-01-01", periods=duration + 1, freq='YS')
     res = pd.DataFrame({'Date': dates})
 
-    # Add realistic trajectories for each starting year from 1973 to 1985
-    for start_year in range(1973, 1986):
-        base_price = gold_prices[start_year]
-        path = []
-        for offset in range(duration + 1):
-            current_val = (gold_prices[start_year + offset] / base_price) * initial_investment
+    # Simulate $10k compounding for each starting year from 1960 to 1985
+    for start_year in range(1960, 1986):
+        path = [initial_investment]
+        current_val = initial_investment
+        for offset in range(1, duration + 1):
+            year_ret = bond_returns.get(start_year + offset - 1, 4.0) / 100
+            current_val *= (1 + year_ret)
             path.append(current_val)
         res[f'Start {start_year}'] = path
 
-    # Add theoretical return bounds
+    # Comparison bounds
     years_held = np.arange(duration + 1)
-    res['8%'] = initial_investment * (1.08 ** years_held)
-    res['2%'] = initial_investment * (1.02 ** years_held)
+    res['8.5%'] = initial_investment * (1.085 ** years_held)
+    res['5.5%'] = initial_investment * (1.055 ** years_held)
 
     res.to_csv(filename, index=False)
-    print(f"Realistic data created: {filename}")
     return res
 
 if __name__ == "__main__":

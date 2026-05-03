@@ -94,18 +94,27 @@ def currency_fmt(x, pos=None):
     return f'${x*1e-3:.0f}K' if x >= 1e3 else f'${x:.0f}'
 
 ax.yaxis.set_major_formatter(plt.FuncFormatter(currency_fmt))
-ax.set_title("GOLD PERFORMANCE\nOVER 40 YEARS", fontsize=35, pad=50, fontweight='bold')
+ax.set_title("TREASURY BOND\nOVER 40 YEARS", fontsize=35, pad=50, fontweight='bold')
 
-# Graphical Elements - Fixed bounds are dashed
+# Graphical Elements - 8% and 5% lines are made to stand out
 lines = []
 for i, t in enumerate(tickers):
-    ls = '--' if 'Fixed' in t else '-'
-    alpha = 1.0 if 'Fixed' in t else 0.7
-    line, = ax.plot([], [], label=t, color=COLORS[i], lw=5, ls=ls, alpha=alpha)
+    is_special = t in ['8.5%', '5.5%']
+    color = 'white' if is_special else COLORS[i]
+    lw = 8 if is_special else 5
+    ls = '--' if is_special else '-'
+    alpha = 1.0 if is_special else 0.7
+    
+    line, = ax.plot([], [], label=t, color=color, lw=lw, ls=ls, alpha=alpha, zorder=5 if is_special else 1)
     lines.append(line)
 
-line_labels = [ax.text(0, 0, f" {t}", color=COLORS[i], fontsize=10, 
-                       fontweight='bold', va='center') for i, t in enumerate(tickers)]
+line_labels = [ax.text(0, 0, f" {t}", color='white' if t in ['8%', '5%'] else COLORS[i], 
+                       fontsize=10, fontweight='bold', va='center') for i, t in enumerate(tickers)]
+
+line_labels = [ax.text(0, 0, f" {t}",
+               color='white' if t in ['8.5%', '5.5%'] else COLORS[i],
+               fontsize=14 if t in ['8.5%', '5.5%'] else 10,
+               fontweight='bold', va='center') for i, t in enumerate(tickers)]
 
 # ==========================================
 # 5. RENDERING ENGINE
